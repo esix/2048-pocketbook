@@ -6,7 +6,7 @@ set PATH=%POCKETBOOKSDK%\arm-linux\bin;%POCKETBOOKSDK%\bin;%PATH%
 
 set INCLUDE=-I/arm-linux/include
 set LIBS=-linkview -lfreetype -lz
-set OUTPUT=2048
+set OUTPUT=2048.app
 
 rm -f %OUTPUT%
 
