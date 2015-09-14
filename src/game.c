@@ -78,8 +78,11 @@ game_new (game_t* game)
         }
     }
 
-  game_add_random_tile (game);
-  game_add_random_tile (game);
+  game_set (game, 3, 0, 1);
+  game_set (game, 3, 1, 1);
+  game_set (game, 3, 2, 2);
+  //game_add_random_tile (game);
+  //game_add_random_tile (game);
 }
 
 

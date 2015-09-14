@@ -5,9 +5,24 @@
 #include <sys/ioctl.h>
 #include <sys/mount.h>
 #include <dlfcn.h>
+#include <pthread.h>
 #include "inkview.h"
 #include "game.h"
 
+
+extern const m3x3;
+
+static const char *strings3x3[9] = {
+	"New Game",
+	"Open page",
+	"Search...",
+	"Goto",
+	"Menu",
+	"Quote",
+	"Thumbnails",
+	"Settings",
+	"Exit"
+};
 
 static struct Game *g_game;
 static ifont *arial8n, *arial12, *arialb12, *cour16, *cour24, *times20;
@@ -82,6 +97,12 @@ void mainscreen_repaint() {
 }
 
 
+void menu3x3_handler(int pos) {
+	char buf[16];
+	sprintf(buf, "Menu: %i", pos);
+	msg(buf);
+}
+
 
 
 
@@ -113,6 +134,7 @@ main_handler(int type, int par1, int par2) {
 			switch (par1)
 				{
 				case KEY_OK:
+					OpenMenu3x3(&m3x3, strings3x3, menu3x3_handler);
 					break;
 
 				case KEY_BACK:
