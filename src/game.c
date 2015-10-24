@@ -1,31 +1,35 @@
+/* game.c - 2048 game logic implementation
+
+   Copyright © 2015 Evgeny Pervushin <your@address>
+   This work is free. You can redistribute it and/or modify it under the
+   terms of the Do What The Fuck You Want To Public License, Version 2,
+   as published by Sam Hocevar. See the COPYING file for more details. */
 
 #include "game.h"
 #include <stdlib.h>
+#include <assert.h>
 
 
 struct Game
 {
-    unsigned int rows;
-    unsigned int cols;
-    char *field;
+  unsigned int rows;
+  unsigned int cols;
+  unsigned char *field;
 };
 
 
 typedef struct Position
 {
-    unsigned int row;
-    unsigned int col;
+  unsigned int row;
+  unsigned int col;
 } position_t;
 
 
-game_t* game_init (unsigned int rows, unsigned int cols);
-void game_new (game_t* game);
-void game_set (game_t *game, unsigned int row, unsigned int col, char value);
-char game_get (game_t *game, unsigned int row, unsigned int col);
+void game_set (game_t *game, unsigned int row, unsigned int col, unsigned char value);
 unsigned int game_get_cells_available (game_t *game);
 char game_get_random_position (game_t *game, position_t *pos);
 char game_add_random_tile (game_t *game);
-char game_move (game_t *game, enum GameDirection direction);
+char game_in_bounds (game_t *game, unsigned int row, unsigned int col);
 int game_fall_piece (game_t *game, unsigned int row, unsigned int col, int dr, int dc);
 
 
@@ -88,17 +92,89 @@ game_new (game_t* game)
 }
 
 
-void
-game_set (game_t *game, unsigned int row, unsigned int col, char value)
+unsigned char
+game_get (game_t *game, unsigned int row, unsigned int col)
 {
-    game->field[row * game->cols + col] = value;
+  assert(row < game->rows && col < game->cols);
+  if (!(row < game->rows && col < game->cols))
+    {
+      return 0;
+    }
+  return game->field[row * game->cols + col];
 }
 
 
 char
-game_get (game_t *game, unsigned int row, unsigned int col)
+game_move (game_t *game, enum GameDirection direction )
 {
-    return game->field[row * game->cols + col];
+  int i, j;
+  int num_falls;
+
+  num_falls = 0;
+
+  switch(direction)
+    {
+    case E_GAME_RIGHT:
+      for (i = 0; i < game->rows; ++i)
+        {
+          for (j = game->cols - 1; j >= 0; --j)
+            {
+              num_falls += game_fall_piece (game, i, j, 0, 1);
+            }
+        }
+      break;
+
+    case E_GAME_UP:
+      for (i = 0; i < game->rows; ++i)
+        {
+          for (j = 0; j < game->cols; ++j)
+            {
+              num_falls += game_fall_piece (game, i, j, -1, 0);
+            }
+        }
+      break;
+
+    case E_GAME_LEFT:
+      for (i = 0; i < game->rows; ++i)
+        {
+          for (j = 0; j < game->cols; ++j)
+            {
+              num_falls += game_fall_piece (game, i, j, 0, -1);
+            }
+        }
+      break;
+
+    case E_GAME_DOWN:
+      for (i = game->rows- 1 ; i >= 0; --i)
+        {
+          for (j = 0; j < game->cols; ++j)
+            {
+              num_falls += game_fall_piece (game, i, j, 1, 0);
+            }
+        }
+      break;
+  }
+
+  if (num_falls)
+    {
+      return game_add_random_tile(game);
+    }
+  else
+    {
+      return 0;
+    }
+}
+
+
+void
+game_set (game_t *game, unsigned int row, unsigned int col, unsigned char value)
+{
+  assert(row < game->rows && col < game->cols);
+  if (!(row < game->rows && col < game->cols))
+    {
+      return;
+    }
+  game->field[row * game->cols + col] = value;
 }
 
 
@@ -124,7 +200,8 @@ game_get_cells_available (game_t *game)
 }
 
 
-char game_get_random_position (game_t *game, position_t *pos)
+char
+game_get_random_position (game_t *game, position_t *pos)
 {
   unsigned int cells_available, cell, i, j;
 
@@ -214,68 +291,6 @@ game_fall_piece (game_t *game, unsigned int row, unsigned int col, int dr, int d
       game_set (game, row, col, 0);
       game_set (game, new_row, new_col, v);
       return 1;
-    }
-  else
-    {
-      return 0;
-    }
-}
-
-
-char
-game_move (game_t *game, enum GameDirection direction )
-{
-  int i, j;
-  int num_falls;
-
-  num_falls = 0;
-
-  switch(direction)
-    {
-    case E_GAME_RIGHT:
-      for (i = 0; i < game->rows; ++i)
-        {
-          for (j = game->cols - 1; j >= 0; --j)
-            {
-              num_falls += game_fall_piece (game, i, j, 0, 1);
-            }
-        }
-      break;
-
-    case E_GAME_UP:
-      for (i = 0; i < game->rows; ++i)
-        {
-          for (j = 0; j < game->cols; ++j)
-            {
-              num_falls += game_fall_piece (game, i, j, -1, 0);
-            }
-        }
-      break;
-
-    case E_GAME_LEFT:
-      for (i = 0; i < game->rows; ++i)
-        {
-          for (j = 0; j < game->cols; ++j)
-            {
-              num_falls += game_fall_piece (game, i, j, 0, -1);
-            }
-        }
-      break;
-
-    case E_GAME_DOWN:
-      for (i = game->rows- 1 ; i >= 0; --i)
-        {
-          for (j = 0; j < game->cols; ++j)
-            {
-              num_falls += game_fall_piece (game, i, j, 1, 0);
-            }
-        }
-      break;
-  }
-
-  if (num_falls)
-    {
-      return game_add_random_tile(game);
     }
   else
     {

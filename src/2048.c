@@ -6,8 +6,10 @@
 #include <sys/mount.h>
 #include <dlfcn.h>
 #include <pthread.h>
-#include "inkview.h"
+#include <inkview.h>
+
 #include "game.h"
+#include "drawing.h"
 
 
 extern const m3x3;

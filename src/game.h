@@ -1,3 +1,10 @@
+/* game.h - 2048 game logic interface
+
+   Copyright © 2015 Evgeny Pervushin <your@address>
+   This work is free. You can redistribute it and/or modify it under the
+   terms of the Do What The Fuck You Want To Public License, Version 2,
+   as published by Sam Hocevar. See the COPYING file for more details. */
+
 #ifndef GAME_H_
 #define GAME_H_
 
@@ -19,9 +26,7 @@ game_t* game_init(unsigned int rows, unsigned int cols);
 
 void game_new (game_t *game);
 
-void game_set (game_t *game, unsigned int row, unsigned int col, char value);
-
-char game_get (game_t *game, unsigned int row, unsigned int col);
+unsigned char game_get (game_t *game, unsigned int row, unsigned int col);
 
 char game_move (game_t *game, enum GameDirection direction);
 
