@@ -2,12 +2,14 @@
 #include "game.h"
 #include <stdlib.h>
 
+
 struct Game
 {
     unsigned int rows;
     unsigned int cols;
     char *field;
 };
+
 
 typedef struct Position
 {

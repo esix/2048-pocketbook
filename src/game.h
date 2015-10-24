@@ -1,9 +1,8 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-
-#define COLS  4
-#define ROWS  4
+#define COLS  3
+#define ROWS  5
 
 typedef struct Game game_t;
 
@@ -24,6 +23,6 @@ void game_set (game_t *game, unsigned int row, unsigned int col, char value);
 
 char game_get (game_t *game, unsigned int row, unsigned int col);
 
-char game_move (game_t *game, enum GameDirection direction );
+char game_move (game_t *game, enum GameDirection direction);
 
 #endif // GAME_H_

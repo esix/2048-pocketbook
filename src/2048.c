@@ -14,13 +14,13 @@ extern const m3x3;
 
 static const char *strings3x3[9] = {
 	"New Game",
-	"Open page",
-	"Search...",
-	"Goto",
-	"Menu",
-	"Quote",
-	"Thumbnails",
-	"Settings",
+	"-",
+	"-",
+	"-",
+	"+",
+	"-",
+	"-",
+	"-",
 	"Exit"
 };
 
@@ -29,7 +29,6 @@ static ifont *arial8n, *arial12, *arialb12, *cour16, *cour24, *times20;
 
 
 int main_handler(int type, int par1, int par2);
-
 
 
 void msg(char *s)
@@ -41,7 +40,8 @@ void msg(char *s)
 }
 
 
-void paint_game (struct Game *game)
+void
+paint_game (struct Game *game)
 {
 	int i, k, w, h, val;
 	char c;
@@ -90,14 +90,16 @@ void paint_game (struct Game *game)
 }
 
 
-void mainscreen_repaint() {
+void
+mainscreen_repaint() {
 	ClearScreen();
 	paint_game (g_game);
 	FullUpdate();
 }
 
 
-void menu3x3_handler(int pos) {
+void
+menu3x3_handler(int pos) {
 	char buf[16];
 	sprintf(buf, "Menu: %i", pos);
 	msg(buf);
@@ -112,7 +114,7 @@ main_handler(int type, int par1, int par2) {
 
 	if (type == EVT_INIT)
 		{
-			g_game = game_init (4, 4);
+			g_game = game_init (ROWS, COLS);
 			game_new (g_game);
 
 			arial8n = OpenFont("LiberationSans", 8, 0);
