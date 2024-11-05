@@ -1,7 +1,6 @@
-2048.app
-2048.exe
 CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
+Makefile
 *.stackdump
 .vscode

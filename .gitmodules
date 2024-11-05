@@ -1,0 +1,3 @@
+[submodule "PocketBookSDK"]
+	path = PocketBookSDK
+	url = https://github.com/pocketbook-free/sdkrelease_1_1a.git
