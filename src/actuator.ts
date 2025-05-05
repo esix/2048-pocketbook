@@ -28,6 +28,8 @@ export default class HTMLActuator {
   }
 
   public actuate(grid: Grid, metadata: IActuateMetadata): void {
+    this._render(grid, metadata);
+
     window.requestAnimationFrame(() => {
       this.clearContainer(this.tileContainer);
 
@@ -56,6 +58,43 @@ export default class HTMLActuator {
   public continueGame(): void {
     this.clearMessage();
   };
+
+
+  private _render(grid: Grid, metadata: IActuateMetadata) {
+
+    function render_grid(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+      console.log(grid, metadata);
+      const gap = Math.floor(size / (grid.size * 8 - 1)), s = gap * 7;
+      for (let j = 0; j < grid.size; j++) {
+        for (let i = 0; i < grid.size; i++) {
+          ctx.beginPath();
+
+          let tile = grid.cells[j][i];
+          if (!tile) {
+            ctx.fillStyle = '#CDC0B5';
+          } else {
+            ctx.fillStyle = "red";
+          }
+
+
+          ctx.rect(x + j * (s + gap), y + i * (s + gap), s, s);
+          ctx.fill();
+
+        }
+      }
+    }
+
+    const board: HTMLCanvasElement = document.getElementById("board")! as HTMLCanvasElement;
+    const w = board.offsetWidth;
+    const h = board.offsetHeight;
+    board.width = w;
+    board.height = w;
+    const ctx = board.getContext("2d")!;
+    render_grid(ctx, 0, 0, Math.min(w, h));
+  }
+
+
+
 
   private clearContainer(container: HTMLDivElement) {
     while (container.firstChild) {

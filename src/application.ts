@@ -39,16 +39,9 @@ const BG_COLOR_2048 = '#edc22e';      // font-size: 35px;
 const COLOR_SUPER = '#f9f6f2';
 const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
 
-function render(): void {
-  const board: HTMLCanvasElement = document.getElementById("board")! as HTMLCanvasElement;
-  const ctx = board.getContext("2d")!;
-  ctx.fillRect(25, 25, 100, 100);
-}
-
 
 function main() {
   (window as any).app = new GameManager(4);
-  render()
 }
 
 main();

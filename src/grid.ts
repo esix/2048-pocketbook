@@ -2,7 +2,7 @@ import Tile from "./tile";
 import { type ICells, type IGridState, IPosition, type IRow, ITileState } from "./local_storage_manager";
 
 export default class Grid {
-  private size: number;
+  public size: number;
   public cells: (Tile | null)[][];
 
   public constructor(size: number, previousState?: ICells) {
