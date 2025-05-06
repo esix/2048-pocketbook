@@ -2,6 +2,45 @@ import { IPosition } from "./local_storage_manager";
 import Grid from "./grid";
 import Tile from "./tile";
 
+
+const COLOR_2 = '#776e65';
+const BG_COLOR_2 = '#eee4da';
+
+const COLOR_4 = '#776e65';
+const BG_COLOR_4 = '#ede0c8';
+
+const COLOR_8 = '#f9f6f2';
+const BG_COLOR_8 = '#f2b179';
+
+const COLOR_16 = '#f9f6f2';
+const BG_COLOR_16 = '#f59563';
+
+const COLOR_32 = '#f9f6f2';
+const BG_COLOR_32 = '#f67c5f';
+
+const COLOR_64 = '#f9f6f2';
+const BG_COLOR_64 = '#f65e3b';
+
+const COLOR_128 = '#f9f6f2';
+const BG_COLOR_128 = '#edcf72';      // font-size: 45px;
+
+const COLOR_256 = '#f9f6f2';
+const BG_COLOR_256 = '#edcc61';      // font-size: 45px;
+
+const COLOR_512 = '#f9f6f2';
+const BG_COLOR_512 = '#edc850';      // font-size: 45px;
+
+const COLOR_1024 = '#f9f6f2';
+const BG_COLOR_1024 = '#edc53f';      // font-size: 35px;
+
+const COLOR_2048 = '#f9f6f2';
+const BG_COLOR_2048 = '#edc22e';      // font-size: 35px;
+
+const COLOR_SUPER = '#f9f6f2';
+const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
+
+const BG_COLOR_EMPTY =  '#CDC0B5';
+
 interface IActuateMetadata {
   score: number;
   over: boolean;
@@ -67,19 +106,41 @@ export default class HTMLActuator {
       const gap = Math.floor(size / (grid.size * 8 - 1)), s = gap * 7;
       for (let j = 0; j < grid.size; j++) {
         for (let i = 0; i < grid.size; i++) {
-          ctx.beginPath();
 
           let tile = grid.cells[j][i];
-          if (!tile) {
-            ctx.fillStyle = '#CDC0B5';
+          let tileColor: string, textColor: string;
+          if (tile) {
+            switch (tile.value) {
+              case 2: textColor = COLOR_2; tileColor = BG_COLOR_2; break;
+              case 4: textColor = COLOR_4; tileColor = BG_COLOR_4; break;
+              case 8: textColor = COLOR_8; tileColor = BG_COLOR_8; break;
+              case 16: textColor = COLOR_16; tileColor = BG_COLOR_16; break;
+              case 32: textColor = COLOR_32; tileColor = BG_COLOR_32; break;
+              case 64: textColor = COLOR_64; tileColor = BG_COLOR_64; break;
+              case 128: textColor = COLOR_128; tileColor = BG_COLOR_128; break;
+              case 256: textColor = COLOR_256; tileColor = BG_COLOR_256; break;
+              case 512: textColor = COLOR_512; tileColor = BG_COLOR_512; break;
+              case 1024: textColor = COLOR_1024; tileColor = BG_COLOR_1024; break;
+              case 2048: textColor = COLOR_2048; tileColor = BG_COLOR_2048; break;
+              default: textColor = COLOR_SUPER;  tileColor = BG_COLOR_SUPER; break;
+            }
+
           } else {
-            ctx.fillStyle = "red";
+            textColor = BG_COLOR_EMPTY;
+            tileColor = BG_COLOR_EMPTY;
           }
-
-
-          ctx.rect(x + j * (s + gap), y + i * (s + gap), s, s);
+          ctx.beginPath();
+          ctx.fillStyle = tileColor;
+          ctx.roundRect(x + j * (s + gap), y + i * (s + gap), s, s, Math.round(s / 20));
           ctx.fill();
 
+          if (tile) {
+            ctx.font = `bold ${Math.floor(s / 2)}px Arial`;
+            ctx.fillStyle = textColor;
+            ctx.textAlign = "center";
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(tile.value), x + j * (s + gap) + Math.floor(s / 2), y + i * (s + gap) + Math.floor(s / 2), s);
+          }
         }
       }
     }
