@@ -126,32 +126,11 @@ export default class GameManager {
       });
   }
 
-  // Represent the current game as an object
-  private serialize(): IGameState {
-    return {
-      grid: this.grid.serialize(),
-      score: this.score,
-      over: this.over,
-      won: this.won,
-      keepPlaying: this._keepPlaying,
-    };
-  }
-
-  // Save all tile positions and remove merger info
-  private prepareTiles() {
-    this.grid.eachCell((x: number, y: number, tile: Tile)=> {
-      if (tile) {
-        tile.mergedFrom = null;
-        tile.savePosition();
-      }
-    });
-  }
-
   // Move a tile and its representation
-  private moveTile(tile: Tile, cell: IPosition) {
+  private moveTile(tile: Tile, position: IPosition) {
     this.grid.cells[tile.x][tile.y] = null;
-    this.grid.cells[cell.x][cell.y] = tile;
-    tile.updatePosition(cell);
+    this.grid.cells[position.x][position.y] = tile;
+    tile.updatePosition(position);
   };
 
   // Move tiles on the grid in the specified direction
@@ -165,7 +144,12 @@ export default class GameManager {
     let moved = false;
 
     // Save the current tile positions and remove merger information
-    this.prepareTiles();
+    this.grid.eachCell((x: number, y: number, tile: Tile)=> {
+      if (tile) {
+        tile.resetMovement();
+        tile.savePosition();
+      }
+    });
 
     // Traverse the grid in the right direction and move tiles
     traversals.x.forEach((x: number)=> {
@@ -210,6 +194,8 @@ export default class GameManager {
       if (!this.movesAvailable()) {
         this.over = true; // Game over!
       }
+
+      this.actuator.moveStarted();
 
       this.actuate();
     }
@@ -291,5 +277,16 @@ export default class GameManager {
 
   private positionsEqual(first: IPosition, second: IPosition): boolean {
     return first.x === second.x && first.y === second.y;
+  }
+
+  // Represent the current game as an object
+  private serialize(): IGameState {
+    return {
+      grid: this.grid.serialize(),
+      score: this.score,
+      over: this.over,
+      won: this.won,
+      keepPlaying: this._keepPlaying,
+    };
   }
 }

@@ -56,6 +56,9 @@ export default class HTMLActuator {
   private bestContainer: HTMLDivElement;
   private messageContainer: HTMLDivElement;
   private score: number;
+  private moveStartTime: number = 0;
+  private _grid: Grid;
+  private _metadata: IActuateMetadata;
 
   public constructor() {
     this.tileContainer = document.querySelector(".tile-container")!;
@@ -64,10 +67,23 @@ export default class HTMLActuator {
     this.messageContainer = document.querySelector(".game-message")!;
 
     this.score = 0;
+
+    const rerender = () => {
+      if (this._grid && this._metadata) {
+        this._render(this._grid, this._metadata);
+      }
+      window.requestAnimationFrame(rerender);
+    };
+    rerender();
+  }
+
+  public moveStarted() {
+    this.moveStartTime = Date.now();
   }
 
   public actuate(grid: Grid, metadata: IActuateMetadata): void {
-    this._render(grid, metadata);
+    this._grid = grid;
+    this._metadata = metadata;
 
     window.requestAnimationFrame(() => {
       this.clearContainer(this.tileContainer);
@@ -100,16 +116,31 @@ export default class HTMLActuator {
 
 
   private _render(grid: Grid, metadata: IActuateMetadata) {
+    const board: HTMLCanvasElement = document.getElementById("board")! as HTMLCanvasElement;
+    const w = board.offsetWidth;
+    const h = board.offsetHeight;
+    board.width = w;
+    board.height = w;
+    const ctx = board.getContext("2d")!;
+    const now = Date.now();
 
-    function render_grid(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-      console.log(grid, metadata);
+    const render_grid = (x: number, y: number, size: number)=>  {
       const gap = Math.floor(size / (grid.size * 8 - 1)), s = gap * 7;
+
       for (let j = 0; j < grid.size; j++) {
         for (let i = 0; i < grid.size; i++) {
+          ctx.beginPath();
+          ctx.fillStyle = BG_COLOR_EMPTY;
+          ctx.roundRect(x + j * (s + gap), y + i * (s + gap), s, s, Math.round(s / 20));
+          ctx.fill();
+        }
+      }
 
+      for (let j = 0; j < grid.size; j++) {
+        for (let i = 0; i < grid.size; i++) {
           let tile = grid.cells[j][i];
-          let tileColor: string, textColor: string;
           if (tile) {
+            let tileColor: string, textColor: string;
             switch (tile.value) {
               case 2: textColor = COLOR_2; tileColor = BG_COLOR_2; break;
               case 4: textColor = COLOR_4; tileColor = BG_COLOR_4; break;
@@ -124,37 +155,31 @@ export default class HTMLActuator {
               case 2048: textColor = COLOR_2048; tileColor = BG_COLOR_2048; break;
               default: textColor = COLOR_SUPER;  tileColor = BG_COLOR_SUPER; break;
             }
+            const timeSinceLastMove = now - this.moveStartTime;
+            const animate = (from: number, to: number, delta: number) =>
+              delta < 1 ? from * (1 - delta) + to * delta : to;
 
-          } else {
-            textColor = BG_COLOR_EMPTY;
-            tileColor = BG_COLOR_EMPTY;
-          }
-          ctx.beginPath();
-          ctx.fillStyle = tileColor;
-          ctx.roundRect(x + j * (s + gap), y + i * (s + gap), s, s, Math.round(s / 20));
-          ctx.fill();
+            const ii = tile.previousPosition ? animate(tile.previousPosition.y, i, timeSinceLastMove / 1000) :  i;
+            const jj = tile.previousPosition ? animate(tile.previousPosition.x, j, timeSinceLastMove / 1000) :  j;
 
-          if (tile) {
+            ctx.beginPath();
+            ctx.fillStyle = tileColor;
+            ctx.roundRect(x + jj * (s + gap), y + ii * (s + gap), s, s, Math.round(s / 20));
+            ctx.fill();
+
             ctx.font = `bold ${Math.floor(s / 2)}px Arial`;
             ctx.fillStyle = textColor;
             ctx.textAlign = "center";
             ctx.textBaseline = 'middle';
-            ctx.fillText(String(tile.value), x + j * (s + gap) + Math.floor(s / 2), y + i * (s + gap) + Math.floor(s / 2), s);
-          }
+            ctx.fillText(String(tile.value), x + jj * (s + gap) + Math.floor(s / 2), y + ii * (s + gap) + Math.floor(s / 2), s);
+
+          } 
         }
       }
     }
 
-    const board: HTMLCanvasElement = document.getElementById("board")! as HTMLCanvasElement;
-    const w = board.offsetWidth;
-    const h = board.offsetHeight;
-    board.width = w;
-    board.height = w;
-    const ctx = board.getContext("2d")!;
-    render_grid(ctx, 0, 0, Math.min(w, h));
+    render_grid(0, 0, Math.min(w, h));
   }
-
-
 
 
   private clearContainer(container: HTMLDivElement) {

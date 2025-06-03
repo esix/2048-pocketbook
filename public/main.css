@@ -217,7 +217,7 @@ hr {
 
 .tile {
   position: absolute;
-  transition: 100ms ease-in-out;
+  transition: 1000ms ease-in-out;
   transition-property: transform; }
 .tile .tile-inner {
   border-radius: 3px;
@@ -288,7 +288,7 @@ hr {
 }
 
 .tile-new .tile-inner {
-  animation: appear 200ms ease 100ms;
+  animation: appear 2000ms ease 1000ms;
   animation-fill-mode: backwards;
 }
 
@@ -300,7 +300,7 @@ hr {
 
 .tile-merged .tile-inner {
   z-index: 20;
-  animation: pop 200ms ease 100ms;
+  animation: pop 2000ms ease 1000ms;
   animation-fill-mode: backwards;
 }
 
