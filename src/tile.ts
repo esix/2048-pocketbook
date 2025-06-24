@@ -7,11 +7,13 @@ export default class Tile {
   public value: number;
   public previousPosition: IPosition | null;
   public mergedFrom: [Tile, Tile] | null;
+  public is_new: boolean;
 
   public constructor(position: IPosition, value: number) {
     this.x = position.x;
     this.y = position.y;
     this.value = value || 2;
+    this.is_new = false;
 
     this.previousPosition = null;
     this.mergedFrom = null; // Tracks tiles that merged together
@@ -20,6 +22,7 @@ export default class Tile {
   public resetMovement() {
     this.previousPosition = null;
     this.mergedFrom = null;
+    this.is_new = false;
   }
 
   public savePosition(): void {

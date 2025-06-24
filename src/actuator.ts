@@ -41,6 +41,26 @@ const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
 
 const BG_COLOR_EMPTY =  '#CDC0B5';
 
+
+function getTileColor(value: number) {
+  let textColor: string, tileColor: string;
+  switch (value) {
+    case 2: textColor = COLOR_2; tileColor = BG_COLOR_2; break;
+    case 4: textColor = COLOR_4; tileColor = BG_COLOR_4; break;
+    case 8: textColor = COLOR_8; tileColor = BG_COLOR_8; break;
+    case 16: textColor = COLOR_16; tileColor = BG_COLOR_16; break;
+    case 32: textColor = COLOR_32; tileColor = BG_COLOR_32; break;
+    case 64: textColor = COLOR_64; tileColor = BG_COLOR_64; break;
+    case 128: textColor = COLOR_128; tileColor = BG_COLOR_128; break;
+    case 256: textColor = COLOR_256; tileColor = BG_COLOR_256; break;
+    case 512: textColor = COLOR_512; tileColor = BG_COLOR_512; break;
+    case 1024: textColor = COLOR_1024; tileColor = BG_COLOR_1024; break;
+    case 2048: textColor = COLOR_2048; tileColor = BG_COLOR_2048; break;
+    default: textColor = COLOR_SUPER;  tileColor = BG_COLOR_SUPER; break;
+  }
+  return {textColor, tileColor}
+}
+
 interface IActuateMetadata {
   score: number;
   over: boolean;
@@ -138,42 +158,60 @@ export default class HTMLActuator {
 
       for (let j = 0; j < grid.size; j++) {
         for (let i = 0; i < grid.size; i++) {
-          let tile = grid.cells[j][i];
+          let tile: Tile | null = grid.cells[j][i];
           if (tile) {
-            let tileColor: string, textColor: string;
-            switch (tile.value) {
-              case 2: textColor = COLOR_2; tileColor = BG_COLOR_2; break;
-              case 4: textColor = COLOR_4; tileColor = BG_COLOR_4; break;
-              case 8: textColor = COLOR_8; tileColor = BG_COLOR_8; break;
-              case 16: textColor = COLOR_16; tileColor = BG_COLOR_16; break;
-              case 32: textColor = COLOR_32; tileColor = BG_COLOR_32; break;
-              case 64: textColor = COLOR_64; tileColor = BG_COLOR_64; break;
-              case 128: textColor = COLOR_128; tileColor = BG_COLOR_128; break;
-              case 256: textColor = COLOR_256; tileColor = BG_COLOR_256; break;
-              case 512: textColor = COLOR_512; tileColor = BG_COLOR_512; break;
-              case 1024: textColor = COLOR_1024; tileColor = BG_COLOR_1024; break;
-              case 2048: textColor = COLOR_2048; tileColor = BG_COLOR_2048; break;
-              default: textColor = COLOR_SUPER;  tileColor = BG_COLOR_SUPER; break;
-            }
             const timeSinceLastMove = now - this.moveStartTime;
-            const animate = (from: number, to: number, delta: number) =>
-              delta < 1 ? from * (1 - delta) + to * delta : to;
+            const animateMoving = 0 <= timeSinceLastMove && timeSinceLastMove < 1000;
+            const animateAppear = 1000 <= timeSinceLastMove && timeSinceLastMove < 2000;
 
-            const ii = tile.previousPosition ? animate(tile.previousPosition.y, i, timeSinceLastMove / 1000) :  i;
-            const jj = tile.previousPosition ? animate(tile.previousPosition.x, j, timeSinceLastMove / 1000) :  j;
+            const linear = (from: number, to: number, delta: number) =>
+              delta <= 0 ? from : delta >= 1 ? to : from * (1 - delta) + to * delta;
 
-            ctx.beginPath();
-            ctx.fillStyle = tileColor;
-            ctx.roundRect(x + jj * (s + gap), y + ii * (s + gap), s, s, Math.round(s / 20));
-            ctx.fill();
+            const renderTileAtScreen = (cx: number, cy: number, ss: number, value: number)=> {
+              let {tileColor, textColor} = getTileColor(value);
+              const rect_x = cx - Math.floor(ss / 2);
+              const rect_y = cy - Math.floor(ss / 2);
 
-            ctx.font = `bold ${Math.floor(s / 2)}px Arial`;
-            ctx.fillStyle = textColor;
-            ctx.textAlign = "center";
-            ctx.textBaseline = 'middle';
-            ctx.fillText(String(tile.value), x + jj * (s + gap) + Math.floor(s / 2), y + ii * (s + gap) + Math.floor(s / 2), s);
+              ctx.beginPath();
+              ctx.fillStyle = tileColor;
+              ctx.roundRect(rect_x, rect_y, ss, ss, Math.round(ss / 20));
+              ctx.fill();
 
-          } 
+              ctx.font = `bold ${Math.floor(ss / 2)}px Arial`;
+              ctx.fillStyle = textColor;
+              ctx.textAlign = "center";
+              ctx.textBaseline = 'middle';
+              ctx.fillText(String(tile.value), cx, cy, ss);
+            }
+
+            const renderTileAtCoords = (ii: number, jj: number, ss: number, value: number)=> {
+              const cx = x + jj * (s + gap) + Math.floor(s / 2);
+              const cy = y + ii * (s + gap) + Math.floor(s / 2);
+              renderTileAtScreen(cx, cy, ss, value);
+            }
+
+            if (tile.mergedFrom && animateMoving) {
+              const [t1, t2] = tile.mergedFrom;
+              console.log('render merge', t1, t2);
+              renderTileAtCoords(
+                linear(t1.y, tile.y, timeSinceLastMove / 1000),
+                linear(t1.x, tile.x, timeSinceLastMove / 1000),
+                s,
+                t1.value);
+              renderTileAtCoords(
+                linear(t2.y, tile.y, timeSinceLastMove / 1000),
+                linear(t2.x, tile.x, timeSinceLastMove / 1000),
+                s,
+                t2.value);
+
+            } else {
+              const ii = tile.previousPosition ? linear(tile.previousPosition.y, i, timeSinceLastMove / 1000) :  i;
+              const jj = tile.previousPosition ? linear(tile.previousPosition.x, j, timeSinceLastMove / 1000) :  j;
+              const ss = tile.is_new || tile.mergedFrom ? linear(0, s, (timeSinceLastMove - 1000) / 1000) : s;
+
+              renderTileAtCoords(ii, jj, ss, tile.value);
+            }
+          }
         }
       }
     }

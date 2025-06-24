@@ -98,6 +98,7 @@ export default class GameManager {
     if (this.grid.cellsAvailable()) {
       const value = Math.random() < 0.9 ? 2 : 4;
       const tile: Tile = new Tile(this.grid.randomAvailableCell()!, value);
+      tile.is_new = true;
       this.grid.insertTile(tile);
     }
   }
@@ -166,11 +167,12 @@ export default class GameManager {
             const merged: Tile = new Tile(positions.next, tile.value * 2);
             merged.mergedFrom = [tile, next];
 
-            this.grid.insertTile(merged);
+            this.grid.removeTile(next);
             this.grid.removeTile(tile);
+            this.grid.insertTile(merged);
 
             // Converge the two tiles' positions
-            tile.updatePosition(positions.next);
+            // tile.updatePosition(positions.next);
 
             // Update the score
             this.score += merged.value;
