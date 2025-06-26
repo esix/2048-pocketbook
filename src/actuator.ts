@@ -42,6 +42,9 @@ const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
 const BG_COLOR_EMPTY =  '#CDC0B5';
 
 
+const ANIMATION_INTERVAL = 100;
+
+
 function getTileColor(value: number) {
   let textColor: string, tileColor: string;
   switch (value) {
@@ -161,8 +164,8 @@ export default class HTMLActuator {
           let tile: Tile | null = grid.cells[j][i];
           if (tile) {
             const timeSinceLastMove = now - this.moveStartTime;
-            const animateMoving = 0 <= timeSinceLastMove && timeSinceLastMove < 1000;
-            const animateAppear = 1000 <= timeSinceLastMove && timeSinceLastMove < 2000;
+            const animateMoving = 0 <= timeSinceLastMove && timeSinceLastMove < ANIMATION_INTERVAL;
+            const animateAppear = ANIMATION_INTERVAL <= timeSinceLastMove && timeSinceLastMove < 2 * ANIMATION_INTERVAL;
 
             const linear = (from: number, to: number, delta: number) =>
               delta <= 0 ? from : delta >= 1 ? to : from * (1 - delta) + to * delta;
@@ -181,7 +184,7 @@ export default class HTMLActuator {
               ctx.fillStyle = textColor;
               ctx.textAlign = "center";
               ctx.textBaseline = 'middle';
-              ctx.fillText(String(tile.value), cx, cy, ss);
+              ctx.fillText(String(value), cx, cy, ss);
             }
 
             const renderTileAtCoords = (ii: number, jj: number, ss: number, value: number)=> {
@@ -190,24 +193,25 @@ export default class HTMLActuator {
               renderTileAtScreen(cx, cy, ss, value);
             }
 
+            const dt = timeSinceLastMove / ANIMATION_INTERVAL;
+
             if (tile.mergedFrom && animateMoving) {
               const [t1, t2] = tile.mergedFrom;
-              console.log('render merge', t1, t2);
               renderTileAtCoords(
-                linear(t1.y, tile.y, timeSinceLastMove / 1000),
-                linear(t1.x, tile.x, timeSinceLastMove / 1000),
+                linear(t1.y, tile.y, dt),
+                linear(t1.x, tile.x, dt),
                 s,
                 t1.value);
               renderTileAtCoords(
-                linear(t2.y, tile.y, timeSinceLastMove / 1000),
-                linear(t2.x, tile.x, timeSinceLastMove / 1000),
+                linear(t2.y, tile.y, dt),
+                linear(t2.x, tile.x, dt),
                 s,
                 t2.value);
 
             } else {
-              const ii = tile.previousPosition ? linear(tile.previousPosition.y, i, timeSinceLastMove / 1000) :  i;
-              const jj = tile.previousPosition ? linear(tile.previousPosition.x, j, timeSinceLastMove / 1000) :  j;
-              const ss = tile.is_new || tile.mergedFrom ? linear(0, s, (timeSinceLastMove - 1000) / 1000) : s;
+              const ii = tile.previousPosition ? linear(tile.previousPosition.y, i, dt) :  i;
+              const jj = tile.previousPosition ? linear(tile.previousPosition.x, j, dt) :  j;
+              const ss = tile.is_new ? linear(0, s, dt - 1) : s;
 
               renderTileAtCoords(ii, jj, ss, tile.value);
             }

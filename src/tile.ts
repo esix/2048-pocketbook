@@ -31,7 +31,6 @@ export default class Tile {
 
   public updatePosition(position: IPosition): void {
     if (this.x !== position.x || this.y !== position.y) {
-      console.log('MOVING FROM ', {x: this.x, y: this.y}, 'TO', position);
       this.previousPosition = {x: this.x, y: this.y};
       this.x = position.x;
       this.y = position.y;

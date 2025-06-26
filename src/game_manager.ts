@@ -165,7 +165,15 @@ export default class GameManager {
           // Only one merger per row traversal?
           if (next && next.value === tile.value && !next.mergedFrom) {
             const merged: Tile = new Tile(positions.next, tile.value * 2);
+
+            if (next.previousPosition) {                              // tile which we merge to, was moved on previous traversal - restore it position
+              next.x = next.previousPosition.x;
+              next.y = next.previousPosition.y;
+              next.previousPosition = null;
+            }
+
             merged.mergedFrom = [tile, next];
+            merged.is_new = true;
 
             this.grid.removeTile(next);
             this.grid.removeTile(tile);
@@ -179,12 +187,13 @@ export default class GameManager {
 
             // The mighty 2048 tile
             if (merged.value === 2048) this.won = true;
+
+            moved = true;
           } else {
             this.moveTile(tile, positions.farthest);
-          }
-
-          if (!this.positionsEqual(cell, tile)) {
-            moved = true; // The tile moved from its original cell!
+            if (!this.positionsEqual(cell, tile)) {
+              moved = true; // The tile moved from its original cell!
+            }
           }
         }
       });
