@@ -42,7 +42,7 @@ const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
 const BG_COLOR_EMPTY =  '#CDC0B5';
 
 
-const ANIMATION_INTERVAL = 100;
+const ANIMATION_INTERVAL = 1000;
 
 
 function getTileColor(value: number) {
@@ -147,14 +147,39 @@ export default class HTMLActuator {
     const ctx = board.getContext("2d")!;
     const now = Date.now();
 
-    const render_grid = (x: number, y: number, size: number)=>  {
-      const gap = Math.floor(size / (grid.size * 8 - 1)), s = gap * 7;
+    const render_grid = (x: number, y: number, w: number, h: number)=>  {
+      const gap_w = Math.floor(w / (grid.size * 8 + grid.size + 1));
+      const gap_h = Math.floor(h / (grid.size * 8 + grid.size + 1));
+      const cell_width = gap_w * 8;
+      const cell_height = gap_h * 8;
+
+      // update w / h
+      w = gap_w * (grid.size * 8 + grid.size + 1);
+      h = gap_h * (grid.size * 8 + grid.size + 1);
+
+      {
+        ctx.beginPath();
+        ctx.fillStyle = '#ffaabb';
+        ctx.roundRect(x, y, w, h, Math.round(cell_width / 20));
+        ctx.fill();
+      }
+
+      const getCellScreenCoords = (i: number, j: number) => {
+        return {
+          x: x + gap_w + j * (cell_width + gap_w),
+          y: y + gap_h + i * (cell_height + gap_h),
+          w: cell_width,
+          h: cell_height,
+        }
+      };
+
 
       for (let j = 0; j < grid.size; j++) {
         for (let i = 0; i < grid.size; i++) {
           ctx.beginPath();
           ctx.fillStyle = BG_COLOR_EMPTY;
-          ctx.roundRect(x + j * (s + gap), y + i * (s + gap), s, s, Math.round(s / 20));
+          const {x, y, w, h} = getCellScreenCoords(i, j);
+          ctx.roundRect(x, y, w, h, Math.round(cell_width / 20));
           ctx.fill();
         }
       }
@@ -170,10 +195,14 @@ export default class HTMLActuator {
             const linear = (from: number, to: number, delta: number) =>
               delta <= 0 ? from : delta >= 1 ? to : from * (1 - delta) + to * delta;
 
-            const renderTileAtScreen = (cx: number, cy: number, ss: number, value: number)=> {
-              let {tileColor, textColor} = getTileColor(value);
-              const rect_x = cx - Math.floor(ss / 2);
-              const rect_y = cy - Math.floor(ss / 2);
+
+            const renderTileAtCoords = (ii: number, jj: number, ss: number, value: number)=> {
+              const {x, y, w, h} = getCellScreenCoords(ii, jj);
+              const cx = x + (w >> 1);
+              const cy = y + (h >> 1);
+              const {tileColor, textColor} = getTileColor(value);
+              const rect_x = cx - (ss >> 1);
+              const rect_y = cy - (ss >> 1);
 
               ctx.beginPath();
               ctx.fillStyle = tileColor;
@@ -187,12 +216,6 @@ export default class HTMLActuator {
               ctx.fillText(String(value), cx, cy, ss);
             }
 
-            const renderTileAtCoords = (ii: number, jj: number, ss: number, value: number)=> {
-              const cx = x + jj * (s + gap) + Math.floor(s / 2);
-              const cy = y + ii * (s + gap) + Math.floor(s / 2);
-              renderTileAtScreen(cx, cy, ss, value);
-            }
-
             const dt = timeSinceLastMove / ANIMATION_INTERVAL;
 
             if (tile.mergedFrom && animateMoving) {
@@ -200,18 +223,18 @@ export default class HTMLActuator {
               renderTileAtCoords(
                 linear(t1.y, tile.y, dt),
                 linear(t1.x, tile.x, dt),
-                s,
+                cell_width,
                 t1.value);
               renderTileAtCoords(
                 linear(t2.y, tile.y, dt),
                 linear(t2.x, tile.x, dt),
-                s,
+                cell_width,
                 t2.value);
 
             } else {
               const ii = tile.previousPosition ? linear(tile.previousPosition.y, i, dt) :  i;
               const jj = tile.previousPosition ? linear(tile.previousPosition.x, j, dt) :  j;
-              const ss = tile.is_new ? linear(0, s, dt - 1) : s;
+              const ss = tile.is_new ? linear(0, cell_width, dt - 1) : cell_width;
 
               renderTileAtCoords(ii, jj, ss, tile.value);
             }
@@ -220,7 +243,7 @@ export default class HTMLActuator {
       }
     }
 
-    render_grid(0, 0, Math.min(w, h));
+    render_grid(0, 0, Math.min(w, h), Math.min(w, h));
   }
 
 
