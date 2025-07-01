@@ -74,7 +74,6 @@ interface IActuateMetadata {
 
 
 export default class HTMLActuator {
-  private tileContainer: HTMLDivElement;
   private scoreContainer: HTMLDivElement;
   private bestContainer: HTMLDivElement;
   private messageContainer: HTMLDivElement;
@@ -84,7 +83,6 @@ export default class HTMLActuator {
   private _metadata: IActuateMetadata;
 
   public constructor() {
-    this.tileContainer = document.querySelector(".tile-container")!;
     this.scoreContainer = document.querySelector(".score-container")!;
     this.bestContainer = document.querySelector(".best-container")!;
     this.messageContainer = document.querySelector(".game-message")!;
@@ -109,16 +107,6 @@ export default class HTMLActuator {
     this._metadata = metadata;
 
     window.requestAnimationFrame(() => {
-      this.clearContainer(this.tileContainer);
-
-      grid.cells.forEach((column: (Tile | null)[]) => {
-        column.forEach((cell: Tile | null) => {
-          if (cell) {
-            this.addTile(cell);
-          }
-        });
-      });
-
       this.updateScore(metadata.score);
       this.updateBestScore(metadata.bestScore);
 
@@ -154,12 +142,16 @@ export default class HTMLActuator {
       const cell_size = gap * 8;
 
       // update w / h
-      w = gap * (grid.size_x * 8 + grid.size_x + 1);
-      h = gap * (grid.size_y * 8 + grid.size_y + 1);
+      const new_w = gap * (grid.size_x * 8 + grid.size_x + 1);
+      const new_h = gap * (grid.size_y * 8 + grid.size_y + 1);
+      x = x + (w >> 1) - (new_w >> 1);
+      y = y + (h >> 1) - (new_h >> 1);
+      w = new_w;
+      h = new_h;
 
       {
         ctx.beginPath();
-        ctx.fillStyle = '#ffaabb';
+        ctx.fillStyle = '#bbada0';
         ctx.roundRect(x, y, w, h, Math.round(cell_size / 20));
         ctx.fill();
       }
@@ -251,61 +243,6 @@ export default class HTMLActuator {
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
-  }
-
-  private addTile(tile: Tile) {
-    const wrapper: HTMLDivElement = document.createElement("div");
-    const inner: HTMLDivElement = document.createElement("div");
-    const position: IPosition = tile.previousPosition || {x: tile.x, y: tile.y};
-    const positionClass = this.positionClass(position);
-
-    // We can't use classlist because it somehow glitches when replacing classes
-    const classes = ["tile", "tile-" + tile.value, positionClass];
-
-    if (tile.value > 2048) classes.push("tile-super");
-
-    this.applyClasses(wrapper, classes);
-
-    inner.classList.add("tile-inner");
-    inner.textContent = String(tile.value);
-
-    if (tile.previousPosition) {
-      // Make sure that the tile gets rendered in the previous position first
-      window.requestAnimationFrame(() => {
-        classes[2] = this.positionClass({x: tile.x, y: tile.y});
-        this.applyClasses(wrapper, classes); // Update the position
-      });
-    } else if (tile.mergedFrom) {
-      classes.push("tile-merged");
-      this.applyClasses(wrapper, classes);
-
-      // Render the tiles that merged
-      tile.mergedFrom.forEach((merged: Tile) => {
-        this.addTile(merged);
-      });
-    } else {
-      classes.push("tile-new");
-      this.applyClasses(wrapper, classes);
-    }
-
-    // Add the inner part of the tile to the wrapper
-    wrapper.appendChild(inner);
-
-    // Put the tile on the board
-    this.tileContainer.appendChild(wrapper);
-  }
-
-  private applyClasses(element: any, classes: any) {
-    element.setAttribute("class", classes.join(" "));
-  }
-
-  private normalizePosition(position: IPosition): IPosition {
-    return {x: position.x + 1, y: position.y + 1};
-  }
-
-  private positionClass(position: IPosition) {
-    position = this.normalizePosition(position);
-    return "tile-position-" + position.x + "-" + position.y;
   }
 
   private updateScore(score: number) {

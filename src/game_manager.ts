@@ -5,6 +5,9 @@ import KeyboardInputManager, { IDirection } from "./keyboard_input_manager";
 import LocalStorageManager, { IGameState, IPosition } from "./local_storage_manager";
 
 
+// const SCORE_TO_WIN = 2048;
+const SCORE_TO_WIN = 16;
+
 interface ITraversal {
   x: number[];
   y: number[];
@@ -189,7 +192,7 @@ export default class GameManager {
             this.score += merged.value;
 
             // The mighty 2048 tile
-            if (merged.value === 2048) this.won = true;
+            if (merged.value === SCORE_TO_WIN) this.won = true;
 
             moved = true;
           } else {
