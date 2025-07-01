@@ -16,7 +16,9 @@ interface IFarthestPosition {
 }
 
 export default class GameManager {
-  private size: number; // Size of the grid
+  // Size of the grid
+  private size_x: number;
+  private size_y: number;
   private inputManager: KeyboardInputManager;
   private storageManager: LocalStorageManager;
   private actuator: HTMLActuator;
@@ -27,8 +29,9 @@ export default class GameManager {
   private score: number;
   private won: boolean;
 
-  public constructor(size: number) {
-    this.size = size; // Size of the grid
+  public constructor(size_x: number, size_y: number) {
+    this.size_x = size_x; // Size of the grid
+    this.size_y = size_y; // Size of the grid
     this.inputManager = new KeyboardInputManager();
     this.storageManager = new LocalStorageManager();
     this.actuator = new HTMLActuator();
@@ -65,14 +68,14 @@ export default class GameManager {
     const previousState: IGameState | null = this.storageManager.getGameState();
 
     // Reload the game from a previous game if present
-    if (previousState) {
-      this.grid = new Grid(previousState.grid.size, previousState.grid.cells); // Reload grid
+    if (previousState && previousState.grid.size_x === this.size_x && previousState.grid.size_y === this.size_y) {
+      this.grid = new Grid(previousState.grid.size_x, previousState.grid.size_y, previousState.grid.cells); // Reload grid
       this.score = previousState.score;
       this.over = previousState.over;
       this.won = previousState.won;
       this._keepPlaying = previousState.keepPlaying;
     } else {
-      this.grid = new Grid(this.size);
+      this.grid = new Grid(this.size_x, this.size_y);
       this.score = 0;
       this.over = false;
       this.won = false;
@@ -229,10 +232,8 @@ export default class GameManager {
   private buildTraversals(vector: IPosition): ITraversal {
     const traversals: ITraversal = {x: [], y: []};
 
-    for (let pos = 0; pos < this.size; pos++) {
-      traversals.x.push(pos);
-      traversals.y.push(pos);
-    }
+    for (let pos = 0; pos < this.size_x; pos++) traversals.x.push(pos);
+    for (let pos = 0; pos < this.size_y; pos++) traversals.y.push(pos);
 
     // Always traverse from the farthest cell in the chosen direction
     if (vector.x === 1) traversals.x = traversals.x.reverse();
@@ -264,8 +265,8 @@ export default class GameManager {
   private tileMatchesAvailable(): boolean {
     let tile: Tile | null = null;
 
-    for (let x = 0; x < this.size; x++) {
-      for (let y = 0; y < this.size; y++) {
+    for (let x = 0; x < this.size_x; x++) {
+      for (let y = 0; y < this.size_y; y++) {
         tile = this.grid.cellContent({x: x, y: y});
 
         if (tile) {

@@ -2,11 +2,13 @@ import Tile from "./tile";
 import { type ICells, type IGridState, IPosition, type IRow, ITileState } from "./local_storage_manager";
 
 export default class Grid {
-  public size: number;
+  public size_x: number;
+  public size_y: number;
   public cells: (Tile | null)[][];
 
-  public constructor(size: number, previousState?: ICells) {
-    this.size = size;
+  public constructor(size_x: number, size_y: number, previousState?: ICells) {
+    this.size_x = size_x;
+    this.size_y = size_y;
     this.cells = previousState ? this.fromState(previousState) : this.empty();
   }
 
@@ -14,10 +16,10 @@ export default class Grid {
   private empty(): (Tile | null)[][] {
     const cells: (Tile | null)[][] = [];
 
-    for (let x = 0; x < this.size; x++) {
+    for (let x = 0; x < this.size_x; x++) {
       const row: (Tile | null)[] = [];
 
-      for (let y = 0; y < this.size; y++) {
+      for (let y = 0; y < this.size_y; y++) {
         row.push(null);
       }
 
@@ -30,10 +32,10 @@ export default class Grid {
   private fromState(state: ICells): (Tile | null)[][] {
     const cells: (Tile | null)[][] = [];
 
-    for (let x = 0; x < this.size; x++) {
+    for (let x = 0; x < this.size_x; x++) {
       const row: (Tile | null)[] = [];
 
-      for (let y = 0; y < this.size; y++) {
+      for (let y = 0; y < this.size_y; y++) {
         const tile: ITileState | null = state[x][y];
         row.push(tile ? new Tile(tile.position, tile.value) : null);
       }
@@ -69,8 +71,8 @@ export default class Grid {
 
   // Call callback for every cell
   public eachCell(callback: (x: number, y: number, tile: Tile | null) => void) {
-    for (let x = 0; x < this.size; x++) {
-      for (let y = 0; y < this.size; y++) {
+    for (let x = 0; x < this.size_x; x++) {
+      for (let y = 0; y < this.size_y; y++) {
         callback(x, y, this.cells[x][y]);
       }
     }
@@ -108,24 +110,25 @@ export default class Grid {
   }
 
   public withinBounds(position: IPosition): boolean {
-    return position.x >= 0 && position.x < this.size &&
-      position.y >= 0 && position.y < this.size;
+    return position.x >= 0 && position.x < this.size_x &&
+      position.y >= 0 && position.y < this.size_y;
   }
 
   public serialize(): IGridState {
     const cellState: ICells = [];
 
-    for (let x = 0; x < this.size; x++) {
+    for (let x = 0; x < this.size_x; x++) {
       const row: IRow = cellState[x] = [];
 
-      for (let y = 0; y < this.size; y++) {
+      for (let y = 0; y < this.size_y; y++) {
         const cell: Tile | null = this.cells[x][y];
         row.push(cell !== null ? cell.serialize() : null);
       }
     }
 
     return {
-      size: this.size,
+      size_x: this.size_x,
+      size_y: this.size_y,
       cells: cellState
     };
   }

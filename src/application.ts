@@ -8,7 +8,7 @@ function main_handler(type: number,  par1: number, par2: number): number {
 
   switch (type) {
     case EVT_INIT:
-      (window as any).app = app = new GameManager(4);
+      (window as any).app = app = new GameManager(6, 6);
       return 1;
     case EVT_EXIT:
       // delete app;

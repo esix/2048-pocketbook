@@ -12,7 +12,8 @@ export type IRow = (ITileState | null)[];
 export type ICells = IRow[];
 
 export interface IGridState {
-  size: number;
+  size_x: number;
+  size_y: number;
   cells: ICells;
 }
 

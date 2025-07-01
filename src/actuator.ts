@@ -42,7 +42,7 @@ const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
 const BG_COLOR_EMPTY =  '#CDC0B5';
 
 
-const ANIMATION_INTERVAL = 1000;
+const ANIMATION_INTERVAL = 100;
 
 
 function getTileColor(value: number) {
@@ -148,44 +148,44 @@ export default class HTMLActuator {
     const now = Date.now();
 
     const render_grid = (x: number, y: number, w: number, h: number)=>  {
-      const gap_w = Math.floor(w / (grid.size * 8 + grid.size + 1));
-      const gap_h = Math.floor(h / (grid.size * 8 + grid.size + 1));
-      const cell_width = gap_w * 8;
-      const cell_height = gap_h * 8;
+      const gap_w = Math.floor(w / (grid.size_x * 8 + grid.size_x + 1));
+      const gap_h = Math.floor(h / (grid.size_y * 8 + grid.size_y + 1));
+      const gap = Math.min(gap_w, gap_h);
+      const cell_size = gap * 8;
 
       // update w / h
-      w = gap_w * (grid.size * 8 + grid.size + 1);
-      h = gap_h * (grid.size * 8 + grid.size + 1);
+      w = gap * (grid.size_x * 8 + grid.size_x + 1);
+      h = gap * (grid.size_y * 8 + grid.size_y + 1);
 
       {
         ctx.beginPath();
         ctx.fillStyle = '#ffaabb';
-        ctx.roundRect(x, y, w, h, Math.round(cell_width / 20));
+        ctx.roundRect(x, y, w, h, Math.round(cell_size / 20));
         ctx.fill();
       }
 
       const getCellScreenCoords = (i: number, j: number) => {
         return {
-          x: x + gap_w + j * (cell_width + gap_w),
-          y: y + gap_h + i * (cell_height + gap_h),
-          w: cell_width,
-          h: cell_height,
+          x: x + gap + j * (cell_size + gap),
+          y: y + gap + i * (cell_size + gap),
+          w: cell_size,
+          h: cell_size,
         }
       };
 
 
-      for (let j = 0; j < grid.size; j++) {
-        for (let i = 0; i < grid.size; i++) {
+      for (let j = 0; j < grid.size_x; j++) {
+        for (let i = 0; i < grid.size_y; i++) {
           ctx.beginPath();
           ctx.fillStyle = BG_COLOR_EMPTY;
           const {x, y, w, h} = getCellScreenCoords(i, j);
-          ctx.roundRect(x, y, w, h, Math.round(cell_width / 20));
+          ctx.roundRect(x, y, w, h, Math.round(cell_size / 20));
           ctx.fill();
         }
       }
 
-      for (let j = 0; j < grid.size; j++) {
-        for (let i = 0; i < grid.size; i++) {
+      for (let j = 0; j < grid.size_x; j++) {
+        for (let i = 0; i < grid.size_y; i++) {
           let tile: Tile | null = grid.cells[j][i];
           if (tile) {
             const timeSinceLastMove = now - this.moveStartTime;
@@ -223,18 +223,18 @@ export default class HTMLActuator {
               renderTileAtCoords(
                 linear(t1.y, tile.y, dt),
                 linear(t1.x, tile.x, dt),
-                cell_width,
+                cell_size,
                 t1.value);
               renderTileAtCoords(
                 linear(t2.y, tile.y, dt),
                 linear(t2.x, tile.x, dt),
-                cell_width,
+                cell_size,
                 t2.value);
 
             } else {
               const ii = tile.previousPosition ? linear(tile.previousPosition.y, i, dt) :  i;
               const jj = tile.previousPosition ? linear(tile.previousPosition.x, j, dt) :  j;
-              const ss = tile.is_new ? linear(0, cell_width, dt - 1) : cell_width;
+              const ss = tile.is_new ? linear(0, cell_size, dt - 1) : cell_size;
 
               renderTileAtCoords(ii, jj, ss, tile.value);
             }
