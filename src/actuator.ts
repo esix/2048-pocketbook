@@ -89,35 +89,30 @@ export default class HTMLActuator {
 
     this.score = 0;
 
-    const rerender = () => {
+    const tick = () => {
       if (this._grid && this._metadata) {
-        this._render(this._grid, this._metadata);
+        this._tick(this._grid, this._metadata);
       }
-      window.requestAnimationFrame(rerender);
+      window.requestAnimationFrame(tick);
     };
-    rerender();
+    tick();
   }
 
   public moveStarted() {
     this.moveStartTime = Date.now();
   }
 
+  public win() {
+    this.message(true); // You win!
+  }
+
+  public game_over() {
+    this.message(false); // You lose
+  }
+
   public actuate(grid: Grid, metadata: IActuateMetadata): void {
     this._grid = grid;
     this._metadata = metadata;
-
-    window.requestAnimationFrame(() => {
-      this.updateScore(metadata.score);
-      this.updateBestScore(metadata.bestScore);
-
-      if (metadata.terminated) {
-        if (metadata.over) {
-          this.message(false); // You lose
-        } else if (metadata.won) {
-          this.message(true); // You win!
-        }
-      }
-    });
   }
 
   // Continues the game (both restart and keep playing)
@@ -126,12 +121,13 @@ export default class HTMLActuator {
   };
 
 
-  private _render(grid: Grid, metadata: IActuateMetadata) {
+  private _tick(grid: Grid, metadata: IActuateMetadata) {
+    this.updateScore(metadata.score);
+    this.updateBestScore(metadata.bestScore);
+
     const board: HTMLCanvasElement = document.getElementById("board")! as HTMLCanvasElement;
-    const w = board.offsetWidth;
-    const h = board.offsetHeight;
-    board.width = w;
-    board.height = w;
+    const w = board.width;
+    const h = board.height;
     const ctx = board.getContext("2d")!;
     const now = Date.now();
 
@@ -235,7 +231,9 @@ export default class HTMLActuator {
       }
     }
 
-    render_grid(0, 0, Math.min(w, h), Math.min(w, h));
+
+
+    render_grid(15, 15, w - 30, h - 30);
   }
 
 

@@ -18,6 +18,19 @@ interface IFarthestPosition {
   next: IPosition;
 }
 
+
+function has_winner_tile(grid: Grid): boolean {
+  for (let i = 0; i < grid.size_y; i++) {
+    for (let j = 0; j < grid.size_x; j++) {
+      const tile = grid.cells[j][i];
+      if (tile !== null && tile.value >= SCORE_TO_WIN) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export default class GameManager {
   // Size of the grid
   private size_x: number;
@@ -191,9 +204,6 @@ export default class GameManager {
             // Update the score
             this.score += merged.value;
 
-            // The mighty 2048 tile
-            if (merged.value === SCORE_TO_WIN) this.won = true;
-
             moved = true;
           } else {
             this.moveTile(tile, positions.farthest);
@@ -205,17 +215,21 @@ export default class GameManager {
       });
     });
 
-    if (moved) {
-      this.addRandomTile();
+    if (!moved) return;
 
-      if (!this.movesAvailable()) {
-        this.over = true; // Game over!
-      }
+    this.addRandomTile();
 
-      this.actuator.moveStarted();
-
-      this.actuate();
+    if (!this.movesAvailable()) {
+      this.over = true; // Game over!
+      this.actuator.game_over();
+    } else if (!this.won && has_winner_tile(this.grid)) {
+      this.won = true;
+      this.actuator.win();
     }
+
+
+    this.actuator.moveStarted();
+    this.actuate();
   }
 
   // Get the vector representing the chosen direction
