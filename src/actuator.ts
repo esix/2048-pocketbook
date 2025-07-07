@@ -73,6 +73,9 @@ interface IActuateMetadata {
 }
 
 
+const MESSAGE_WIN = 1;
+const MESSAGE_LOST = 2;
+
 export default class HTMLActuator {
   private scoreContainer: HTMLDivElement;
   private bestContainer: HTMLDivElement;
@@ -81,6 +84,7 @@ export default class HTMLActuator {
   private moveStartTime: number = 0;
   private _grid: Grid;
   private _metadata: IActuateMetadata;
+  private _message: number;
 
   public constructor() {
     this.scoreContainer = document.querySelector(".score-container")!;
@@ -88,6 +92,7 @@ export default class HTMLActuator {
     this.messageContainer = document.querySelector(".game-message")!;
 
     this.score = 0;
+    this._message = 0;
 
     const tick = () => {
       if (this._grid && this._metadata) {
@@ -117,6 +122,7 @@ export default class HTMLActuator {
 
   // Continues the game (both restart and keep playing)
   public continueGame(): void {
+    this._message = 0;
     this.clearMessage();
   };
 

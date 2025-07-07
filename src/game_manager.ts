@@ -58,6 +58,9 @@ export default class GameManager {
     this.inputManager.on('restart', this.restart);
     this.inputManager.on('keepPlaying', this.keepPlaying);
 
+    //
+    (window as any).GameManager = this;
+
     this.setup();
   }
 
@@ -71,6 +74,7 @@ export default class GameManager {
   // Keep playing after winning (allows going over 2048)
   private keepPlaying = () => {
     this._keepPlaying = true;
+    this.storageManager.setGameState(this.serialize());
     this.actuator.continueGame(); // Clear the game won/lost message
   }
 
@@ -103,6 +107,10 @@ export default class GameManager {
 
     // Update the actuator
     this.actuate();
+
+    if (this.won && !this._keepPlaying) {
+      this.actuator.win();
+    }
   }
 
   // Set up the initial tiles to start the game with
