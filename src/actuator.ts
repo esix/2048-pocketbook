@@ -1,6 +1,8 @@
 import { IPosition } from "./local_storage_manager";
 import Grid from "./grid";
 import Tile from "./tile";
+import { ScreenHeight, ScreenWidth } from "./inkview";
+import { round_rect } from "./g_primitives";
 
 
 const COLOR_2 = '#776e65';
@@ -39,7 +41,7 @@ const BG_COLOR_2048 = '#edc22e';      // font-size: 35px;
 const COLOR_SUPER = '#f9f6f2';
 const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
 
-const BG_COLOR_EMPTY =  '#CDC0B5';
+const BG_COLOR_EMPTY =  0xCDC0B5;
 
 
 const ANIMATION_INTERVAL = 100;
@@ -72,9 +74,6 @@ interface IActuateMetadata {
   terminated: boolean;
 }
 
-
-const MESSAGE_WIN = 1;
-const MESSAGE_LOST = 2;
 
 export default class HTMLActuator {
   private scoreContainer: HTMLDivElement;
@@ -132,8 +131,9 @@ export default class HTMLActuator {
     this.updateBestScore(metadata.bestScore);
 
     const board: HTMLCanvasElement = document.getElementById("board")! as HTMLCanvasElement;
-    const w = board.width;
-    const h = board.height;
+    const w = ScreenWidth();
+    const h = ScreenHeight();
+
     const ctx = board.getContext("2d")!;
     const now = Date.now();
 
@@ -151,12 +151,7 @@ export default class HTMLActuator {
       w = new_w;
       h = new_h;
 
-      {
-        ctx.beginPath();
-        ctx.fillStyle = '#bbada0';
-        ctx.roundRect(x, y, w, h, Math.round(cell_size / 20));
-        ctx.fill();
-      }
+      round_rect(x, y, w, h, Math.round(cell_size / 20), 0xbbada0);       // grey
 
       const getCellScreenCoords = (i: number, j: number) => {
         return {
@@ -167,14 +162,10 @@ export default class HTMLActuator {
         }
       };
 
-
       for (let j = 0; j < grid.size_x; j++) {
         for (let i = 0; i < grid.size_y; i++) {
-          ctx.beginPath();
-          ctx.fillStyle = BG_COLOR_EMPTY;
           const {x, y, w, h} = getCellScreenCoords(i, j);
-          ctx.roundRect(x, y, w, h, Math.round(cell_size / 20));
-          ctx.fill();
+          round_rect(x, y, w, h, Math.round(cell_size / 20), BG_COLOR_EMPTY);
         }
       }
 
