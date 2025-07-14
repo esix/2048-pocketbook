@@ -3,6 +3,7 @@ import Grid from "./grid";
 import Tile from "./tile";
 import { ScreenHeight, ScreenWidth } from "./inkview";
 import { round_rect } from "./g_primitives";
+import { MESSAGE_BOX_GAMEOVER, MESSAGE_BOX_WIN } from "./constants";
 
 
 const COLOR_2 = '#776e65';
@@ -72,6 +73,7 @@ interface IActuateMetadata {
   won: boolean;
   bestScore: number;
   terminated: boolean;
+  message_box: number;
 }
 
 
@@ -106,14 +108,6 @@ export default class HTMLActuator {
     this.moveStartTime = Date.now();
   }
 
-  public win() {
-    this.message(true); // You win!
-  }
-
-  public game_over() {
-    this.message(false); // You lose
-  }
-
   public actuate(grid: Grid, metadata: IActuateMetadata): void {
     this._grid = grid;
     this._metadata = metadata;
@@ -121,6 +115,7 @@ export default class HTMLActuator {
 
   // Continues the game (both restart and keep playing)
   public continueGame(): void {
+    debugger;
     this._message = 0;
     this.clearMessage();
   };
@@ -228,9 +223,40 @@ export default class HTMLActuator {
       }
     }
 
-
-
     render_grid(15, 15, w - 30, h - 30);
+
+    switch (metadata.message_box) {
+      case MESSAGE_BOX_WIN:
+        this.message(true);
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(238, 228, 218, 0.5)';
+        ctx.rect(0, 0, w, h)
+        ctx.fill();
+
+        ctx.font = `bold ${Math.floor(Math.min(w, h) / 8.5)}px Arial`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = "center";
+        ctx.textBaseline = 'middle';
+        ctx.fillText('You win!', w >> 1, (h >> 4) * 7, w);
+
+        round_rect((w >> 4) * 4, (h >> 4) * 9, (w >> 4) * 4, (h >> 4) * 1, 2, 0x008f7a66);
+        ctx.font = `bold ${Math.floor(Math.min(w, h) / 30)}px Arial`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = "center";
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Keep going', (w >> 4) * 4 + (w >> 4) * 2, (h >> 4) * 9 +  (h >> 4) * 0.5, (w >> 4) * 4);
+
+        round_rect((w >> 4) * 9, (h >> 4) * 9, (w >> 4) * 4, (h >> 4) * 1, 2, 0x008f7a66);
+        ctx.font = `bold ${Math.floor(Math.min(w, h) / 30)}px Arial`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = "center";
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Try again', (w >> 4) * 9 + (w >> 4) * 2, (h >> 4) * 9 +  (h >> 4) * 0.5, (w >> 4) * 4);
+
+        break;
+      case MESSAGE_BOX_GAMEOVER: this.message(false); break;
+    }
+
   }
 
 
@@ -271,7 +297,7 @@ export default class HTMLActuator {
 
   private clearMessage() {
     // IE only takes one value to remove at a time.
-    this.messageContainer.classList.remove("game-won");
-    this.messageContainer.classList.remove("game-over");
+    // this.messageContainer.classList.remove("game-won");
+    // this.messageContainer.classList.remove("game-over");
   }
 }

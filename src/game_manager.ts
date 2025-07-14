@@ -3,6 +3,7 @@ import Tile from "./tile";
 import HTMLActuator from "./actuator";
 import KeyboardInputManager, { IDirection } from "./keyboard_input_manager";
 import LocalStorageManager, { IGameState, IPosition } from "./local_storage_manager";
+import { MESSAGE_BOX_GAMEOVER, MESSAGE_BOX_NONE, MESSAGE_BOX_WIN } from "./constants";
 
 
 // const SCORE_TO_WIN = 2048;
@@ -40,6 +41,7 @@ export default class GameManager {
   private actuator: HTMLActuator;
   private startTiles: number;
   private _keepPlaying: boolean;
+  private message_box: number;
   private over: boolean;
   private grid: Grid;
   private score: number;
@@ -56,7 +58,7 @@ export default class GameManager {
 
     this.inputManager.on('move', this.move);
     this.inputManager.on('restart', this.restart);
-    this.inputManager.on('keepPlaying', this.keepPlaying);
+    this.inputManager.on('keepPlaying', this.onPressKeepPlaying);
 
     //
     (window as any).GameManager = this;
@@ -66,14 +68,17 @@ export default class GameManager {
 
   // Restart the game
   private restart = () => {
+    this.message_box = MESSAGE_BOX_NONE;
     this.storageManager.clearGameState();
     this.actuator.continueGame(); // Clear the game won/lost message
     this.setup();
   }
 
   // Keep playing after winning (allows going over 2048)
-  private keepPlaying = () => {
+  private onPressKeepPlaying = () => {
+    debugger;
     this._keepPlaying = true;
+    this.message_box = MESSAGE_BOX_NONE;
     this.storageManager.setGameState(this.serialize());
     this.actuator.continueGame(); // Clear the game won/lost message
   }
@@ -105,12 +110,12 @@ export default class GameManager {
       this.addStartTiles();
     }
 
+    if (this.won && !this._keepPlaying) {
+      this.message_box = MESSAGE_BOX_WIN;
+    }
+
     // Update the actuator
     this.actuate();
-
-    if (this.won && !this._keepPlaying) {
-      this.actuator.win();
-    }
   }
 
   // Set up the initial tiles to start the game with
@@ -150,7 +155,8 @@ export default class GameManager {
         over: this.over,
         won: this.won,
         bestScore: this.storageManager.getBestScore(),
-        terminated: this.isGameTerminated()
+        terminated: this.isGameTerminated(),
+        message_box: this.message_box,
       });
   }
 
@@ -228,11 +234,13 @@ export default class GameManager {
     this.addRandomTile();
 
     if (!this.movesAvailable()) {
+      debugger;
       this.over = true; // Game over!
-      this.actuator.game_over();
+      this.message_box = MESSAGE_BOX_GAMEOVER;
     } else if (!this.won && has_winner_tile(this.grid)) {
+      debugger;
       this.won = true;
-      this.actuator.win();
+      this.message_box = MESSAGE_BOX_WIN;
     }
 
 
