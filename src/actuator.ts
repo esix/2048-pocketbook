@@ -2,54 +2,54 @@ import { IPosition } from "./local_storage_manager";
 import Grid from "./grid";
 import Tile from "./tile";
 import { ScreenHeight, ScreenWidth } from "./inkview";
-import { round_rect } from "./g_primitives";
+import { button, c_text, round_rect } from "./g_primitives";
 import { MESSAGE_BOX_GAMEOVER, MESSAGE_BOX_WIN } from "./constants";
 
 
-const COLOR_2 = '#776e65';
-const BG_COLOR_2 = '#eee4da';
+const COLOR_2 = 0x00776e65;
+const BG_COLOR_2 = 0x00eee4da;
 
-const COLOR_4 = '#776e65';
-const BG_COLOR_4 = '#ede0c8';
+const COLOR_4 = 0x00776e65;
+const BG_COLOR_4 = 0x00ede0c8;
 
-const COLOR_8 = '#f9f6f2';
-const BG_COLOR_8 = '#f2b179';
+const COLOR_8 = 0x00f9f6f2;
+const BG_COLOR_8 = 0x00f2b179;
 
-const COLOR_16 = '#f9f6f2';
-const BG_COLOR_16 = '#f59563';
+const COLOR_16 = 0x00f9f6f2;
+const BG_COLOR_16 = 0x00f59563;
 
-const COLOR_32 = '#f9f6f2';
-const BG_COLOR_32 = '#f67c5f';
+const COLOR_32 = 0x00f9f6f2;
+const BG_COLOR_32 = 0x00f67c5f;
 
-const COLOR_64 = '#f9f6f2';
-const BG_COLOR_64 = '#f65e3b';
+const COLOR_64 = 0x00f9f6f2;
+const BG_COLOR_64 = 0x00f65e3b;
 
-const COLOR_128 = '#f9f6f2';
-const BG_COLOR_128 = '#edcf72';      // font-size: 45px;
+const COLOR_128 = 0x00f9f6f2;
+const BG_COLOR_128 = 0x00edcf72;      // font-size: 45px;
 
-const COLOR_256 = '#f9f6f2';
-const BG_COLOR_256 = '#edcc61';      // font-size: 45px;
+const COLOR_256 = 0x00f9f6f2;
+const BG_COLOR_256 = 0x00edcc61;      // font-size: 45px;
 
-const COLOR_512 = '#f9f6f2';
-const BG_COLOR_512 = '#edc850';      // font-size: 45px;
+const COLOR_512 = 0x00f9f6f2;
+const BG_COLOR_512 = 0x00edc850;      // font-size: 45px;
 
-const COLOR_1024 = '#f9f6f2';
-const BG_COLOR_1024 = '#edc53f';      // font-size: 35px;
+const COLOR_1024 = 0x00f9f6f2;
+const BG_COLOR_1024 = 0x00edc53f;      // font-size: 35px;
 
-const COLOR_2048 = '#f9f6f2';
-const BG_COLOR_2048 = '#edc22e';      // font-size: 35px;
+const COLOR_2048 = 0x00f9f6f2;
+const BG_COLOR_2048 = 0x00edc22e;      // font-size: 35px;
 
-const COLOR_SUPER = '#f9f6f2';
-const BG_COLOR_SUPER = '#3c3a32';      // font-size: 30px;
+const COLOR_SUPER = 0x00f9f6f2;
+const BG_COLOR_SUPER = 0x003c3a32;      // font-size: 30px;
 
-const BG_COLOR_EMPTY =  0xCDC0B5;
+const BG_COLOR_EMPTY = 0x00CDC0B5;
 
 
 const ANIMATION_INTERVAL = 100;
 
 
 function getTileColor(value: number) {
-  let textColor: string, tileColor: string;
+  let textColor: number, tileColor: number;
   switch (value) {
     case 2: textColor = COLOR_2; tileColor = BG_COLOR_2; break;
     case 4: textColor = COLOR_4; tileColor = BG_COLOR_4; break;
@@ -66,6 +66,18 @@ function getTileColor(value: number) {
   }
   return {textColor, tileColor}
 }
+
+function opacify(color: number, grage: number): number {
+  //return Math.round(color * grage + 0x00ffffff * (1 - grage));
+  let r = (color >> 16) & 0xff;
+  let g = (color >> 8) & 0xff;
+  let b = (color >> 0) & 0xff;
+  r = Math.round(r * grage + 0xff * (1 - grage))
+  g = Math.round(g * grage + 0xff * (1 - grage))
+  b = Math.round(b * grage + 0xff * (1 - grage))
+  return (r << 16) | (g << 8) | (b << 0);
+}
+
 
 interface IActuateMetadata {
   score: number;
@@ -132,7 +144,7 @@ export default class HTMLActuator {
     const ctx = board.getContext("2d")!;
     const now = Date.now();
 
-    const render_grid = (x: number, y: number, w: number, h: number)=>  {
+    const render_grid = (x: number, y: number, w: number, h: number, opacity: number)=>  {
       const gap_w = Math.floor(w / (grid.size_x * 8 + grid.size_x + 1));
       const gap_h = Math.floor(h / (grid.size_y * 8 + grid.size_y + 1));
       const gap = Math.min(gap_w, gap_h);
@@ -146,7 +158,7 @@ export default class HTMLActuator {
       w = new_w;
       h = new_h;
 
-      round_rect(x, y, w, h, Math.round(cell_size / 20), 0xbbada0);       // grey
+      round_rect(x, y, w, h, Math.round(cell_size / 20), opacify(0xbbada0, opacity));       // grey
 
       const getCellScreenCoords = (i: number, j: number) => {
         return {
@@ -160,7 +172,7 @@ export default class HTMLActuator {
       for (let j = 0; j < grid.size_x; j++) {
         for (let i = 0; i < grid.size_y; i++) {
           const {x, y, w, h} = getCellScreenCoords(i, j);
-          round_rect(x, y, w, h, Math.round(cell_size / 20), BG_COLOR_EMPTY);
+          round_rect(x, y, w, h, Math.round(cell_size / 20), opacify(BG_COLOR_EMPTY, opacity));
         }
       }
 
@@ -184,16 +196,8 @@ export default class HTMLActuator {
               const rect_x = cx - (ss >> 1);
               const rect_y = cy - (ss >> 1);
 
-              ctx.beginPath();
-              ctx.fillStyle = tileColor;
-              ctx.roundRect(rect_x, rect_y, ss, ss, Math.round(ss / 20));
-              ctx.fill();
-
-              ctx.font = `bold ${Math.floor(ss / 2)}px Arial`;
-              ctx.fillStyle = textColor;
-              ctx.textAlign = "center";
-              ctx.textBaseline = 'middle';
-              ctx.fillText(String(value), cx, cy, ss);
+              round_rect(rect_x, rect_y, ss, ss, Math.round(ss / 20), opacify(tileColor, opacity));
+              c_text(String(value), cx, cy, Math.floor(ss / 2), opacify(textColor, opacity));
             }
 
             const dt = timeSinceLastMove / ANIMATION_INTERVAL;
@@ -223,38 +227,21 @@ export default class HTMLActuator {
       }
     }
 
-    render_grid(15, 15, w - 30, h - 30);
+    render_grid(15, 15, w - 30, h - 30, metadata.message_box ? 0.3 : 1);
+
+    // TODO message coords
 
     switch (metadata.message_box) {
       case MESSAGE_BOX_WIN:
         this.message(true);
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(238, 228, 218, 0.5)';
-        ctx.rect(0, 0, w, h)
-        ctx.fill();
-
-        ctx.font = `bold ${Math.floor(Math.min(w, h) / 8.5)}px Arial`;
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = "center";
-        ctx.textBaseline = 'middle';
-        ctx.fillText('You win!', w >> 1, (h >> 4) * 7, w);
-
-        round_rect((w >> 4) * 4, (h >> 4) * 9, (w >> 4) * 4, (h >> 4) * 1, 2, 0x008f7a66);
-        ctx.font = `bold ${Math.floor(Math.min(w, h) / 30)}px Arial`;
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = "center";
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Keep going', (w >> 4) * 4 + (w >> 4) * 2, (h >> 4) * 9 +  (h >> 4) * 0.5, (w >> 4) * 4);
-
-        round_rect((w >> 4) * 9, (h >> 4) * 9, (w >> 4) * 4, (h >> 4) * 1, 2, 0x008f7a66);
-        ctx.font = `bold ${Math.floor(Math.min(w, h) / 30)}px Arial`;
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = "center";
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Try again', (w >> 4) * 9 + (w >> 4) * 2, (h >> 4) * 9 +  (h >> 4) * 0.5, (w >> 4) * 4);
-
+        c_text('You win!', w >> 1, (h >> 4) * 8, Math.floor(Math.min(w, h) / 8.5), 0x00333333);
+        button((w >> 4) * 4, (h >> 4) * 11, (w >> 4) * 4, (h >> 5) * 3, 'Keep going');
+        button((w >> 4) * 9, (h >> 4) * 11, (w >> 4) * 4, (h >> 5) * 3, 'Try again');
         break;
-      case MESSAGE_BOX_GAMEOVER: this.message(false); break;
+
+      case MESSAGE_BOX_GAMEOVER:
+        this.message(false);
+        break;
     }
 
   }

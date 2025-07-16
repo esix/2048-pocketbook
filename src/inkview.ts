@@ -57,10 +57,9 @@ export function ClearScreen(): void {
 
 
 export function ScreenWidth() {
-  const h = board.height;
   return board.width;
 }
 
 export function ScreenHeight() {
-  return 600;
+  return board.height;
 }
